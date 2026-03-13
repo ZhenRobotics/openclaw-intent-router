@@ -1,0 +1,238 @@
+{
+  "skills": [
+    {
+      "name": "weather-lookup",
+      "description": "Get current weather information for any location",
+      "triggers": [
+        "weather",
+        "temperature",
+        "forecast",
+        "climate",
+        "how hot is",
+        "how cold is"
+      ],
+      "examples": [
+        "What's the weather in Paris?",
+        "Temperature in Tokyo",
+        "Weather forecast for London",
+        "How hot is it in Dubai?"
+      ],
+      "tags": ["weather", "information", "lookup"],
+      "parameters": {
+        "location": {
+          "type": "string",
+          "required": true,
+          "description": "The location to get weather for"
+        },
+        "units": {
+          "type": "string",
+          "required": false,
+          "default": "celsius",
+          "enum": ["celsius", "fahrenheit"],
+          "description": "Temperature units"
+        }
+      }
+    },
+    {
+      "name": "image-object-detection",
+      "description": "Detect and classify objects in images using computer vision",
+      "triggers": [
+        "analyze image",
+        "detect objects",
+        "identify items",
+        "what is in this image",
+        "recognize objects"
+      ],
+      "examples": [
+        "What objects are in this photo?",
+        "Analyze this image for objects",
+        "Detect items in the picture"
+      ],
+      "tags": ["vision", "image", "ai", "detection"],
+      "parameters": {
+        "imageUrl": {
+          "type": "string",
+          "required": true,
+          "description": "URL or path to the image"
+        },
+        "threshold": {
+          "type": "number",
+          "required": false,
+          "default": 0.5,
+          "description": "Confidence threshold for detection"
+        }
+      }
+    },
+    {
+      "name": "code-generator",
+      "description": "Generate code snippets from natural language descriptions",
+      "triggers": [
+        "write code",
+        "generate function",
+        "create script",
+        "code for",
+        "implement"
+      ],
+      "examples": [
+        "Write a Python function to sort a list",
+        "Generate a React component for a button",
+        "Create a script to read CSV files"
+      ],
+      "tags": ["code", "programming", "generation"],
+      "parameters": {
+        "language": {
+          "type": "string",
+          "required": true,
+          "description": "Programming language"
+        },
+        "description": {
+          "type": "string",
+          "required": true,
+          "description": "Description of what the code should do"
+        }
+      }
+    },
+    {
+      "name": "text-summarizer",
+      "description": "Summarize long text into concise summaries",
+      "triggers": [
+        "summarize",
+        "tldr",
+        "give me summary",
+        "key points",
+        "condense"
+      ],
+      "examples": [
+        "Summarize this article",
+        "Give me the key points of this document",
+        "TL;DR for this text"
+      ],
+      "tags": ["text", "nlp", "summarization"],
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "The text to summarize"
+        },
+        "maxLength": {
+          "type": "number",
+          "required": false,
+          "default": 150,
+          "description": "Maximum length of summary"
+        }
+      }
+    },
+    {
+      "name": "sentiment-analysis",
+      "description": "Analyze sentiment and emotional tone of text",
+      "triggers": [
+        "sentiment",
+        "analyze tone",
+        "emotional analysis",
+        "is this positive",
+        "is this negative"
+      ],
+      "examples": [
+        "Analyze the sentiment of this review",
+        "What's the tone of this message?",
+        "Is this text positive or negative?"
+      ],
+      "tags": ["nlp", "sentiment", "analysis"],
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "The text to analyze"
+        }
+      }
+    },
+    {
+      "name": "translation",
+      "description": "Translate text between languages",
+      "triggers": [
+        "translate",
+        "translation",
+        "in spanish",
+        "in french",
+        "convert to"
+      ],
+      "examples": [
+        "Translate this to Spanish",
+        "What is 'hello' in French?",
+        "Convert this text to German"
+      ],
+      "tags": ["translation", "language", "nlp"],
+      "parameters": {
+        "text": {
+          "type": "string",
+          "required": true,
+          "description": "Text to translate"
+        },
+        "targetLanguage": {
+          "type": "string",
+          "required": true,
+          "description": "Target language code (e.g., 'es', 'fr', 'de')"
+        },
+        "sourceLanguage": {
+          "type": "string",
+          "required": false,
+          "description": "Source language (auto-detect if not provided)"
+        }
+      }
+    },
+    {
+      "name": "web-search",
+      "description": "Search the web for information",
+      "triggers": [
+        "search",
+        "find",
+        "look up",
+        "google",
+        "web search"
+      ],
+      "examples": [
+        "Search for latest AI news",
+        "Find information about quantum computing",
+        "Look up the capital of France"
+      ],
+      "tags": ["search", "web", "information"],
+      "parameters": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "default": 10,
+          "description": "Maximum number of results"
+        }
+      }
+    },
+    {
+      "name": "calculator",
+      "description": "Perform mathematical calculations",
+      "triggers": [
+        "calculate",
+        "compute",
+        "what is",
+        "solve",
+        "math"
+      ],
+      "examples": [
+        "Calculate 15% of 200",
+        "What is 45 * 67?",
+        "Solve 2x + 5 = 15"
+      ],
+      "tags": ["math", "calculation", "utility"],
+      "parameters": {
+        "expression": {
+          "type": "string",
+          "required": true,
+          "description": "Mathematical expression to evaluate"
+        }
+      }
+    }
+  ]
+}

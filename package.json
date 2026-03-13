@@ -1,0 +1,68 @@
+{
+  "name": "openclaw-intent-router",
+  "version": "1.0.0",
+  "description": "Intent Router - The Search Layer for Agent Capabilities. Intelligent routing system that matches user intents to the most appropriate agent skills and capabilities.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "intent-router": "./dist/cli/index.js",
+    "ir": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "start": "tsx src/cli/index.ts",
+    "dev": "tsx watch src/cli/index.ts",
+    "build": "tsc",
+    "test": "tsx tests/test-router.ts",
+    "prepublishOnly": "npm test && npm run build",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "intent-router",
+    "agent",
+    "ai-agent",
+    "skill-router",
+    "capability-matching",
+    "intent-recognition",
+    "nlp",
+    "agent-framework",
+    "openclaw",
+    "skill-matching",
+    "agent-capabilities",
+    "intent-matching",
+    "ai-routing"
+  ],
+  "author": "justin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZhenRobotics/openclaw-intent-router.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ZhenRobotics/openclaw-intent-router/issues"
+  },
+  "homepage": "https://github.com/ZhenRobotics/openclaw-intent-router#readme",
+  "files": [
+    "dist/",
+    "src/",
+    "config/skills.example.json",
+    "examples/",
+    "README.md",
+    "QUICKSTART.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "axios": "^1.13.6",
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "dotenv": "^16.6.1",
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.13",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

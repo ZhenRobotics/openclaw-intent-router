@@ -1,0 +1,93 @@
+{
+  "douyin": {
+    "enabled": true,
+    "name": "抖音",
+    "api_base": "https://open.douyin.com",
+    "upload_endpoint": "/oauth/platform/upload/video",
+    "max_file_size": 268435456,
+    "supported_formats": ["mp4", "mov", "avi"],
+    "max_duration": 300,
+    "rate_limit": {
+      "requests_per_hour": 100,
+      "requests_per_day": 1000
+    }
+  },
+  "kuaishou": {
+    "enabled": true,
+    "name": "快手",
+    "api_base": "https://open.kuaishou.com",
+    "upload_endpoint": "/openapi/video/upload",
+    "max_file_size": 268435456,
+    "supported_formats": ["mp4", "mov"],
+    "max_duration": 600,
+    "rate_limit": {
+      "requests_per_hour": 100,
+      "requests_per_day": 1000
+    }
+  },
+  "weixin": {
+    "enabled": true,
+    "name": "微信视频号",
+    "api_base": "https://api.weixin.qq.com",
+    "upload_endpoint": "/channels/ec/basics/video/upload",
+    "max_file_size": 268435456,
+    "supported_formats": ["mp4"],
+    "max_duration": 300,
+    "rate_limit": {
+      "requests_per_hour": 50,
+      "requests_per_day": 500
+    }
+  },
+  "bilibili": {
+    "enabled": true,
+    "name": "哔哩哔哩",
+    "api_base": "https://member.bilibili.com",
+    "upload_endpoint": "/x/vu/web/add/v3",
+    "max_file_size": 4294967296,
+    "supported_formats": ["mp4", "flv", "mov"],
+    "max_duration": 7200,
+    "rate_limit": {
+      "requests_per_hour": 50,
+      "requests_per_day": 500
+    }
+  },
+  "xiaohongshu": {
+    "enabled": false,
+    "name": "小红书",
+    "api_base": "https://open.xiaohongshu.com",
+    "upload_endpoint": "/api/v1/video/upload",
+    "max_file_size": 268435456,
+    "supported_formats": ["mp4"],
+    "max_duration": 300,
+    "rate_limit": {
+      "requests_per_hour": 50,
+      "requests_per_day": 500
+    }
+  },
+  "youtube": {
+    "enabled": true,
+    "name": "YouTube",
+    "api_base": "https://www.googleapis.com",
+    "upload_endpoint": "/upload/youtube/v3/videos",
+    "max_file_size": 137438953472,
+    "supported_formats": ["mp4", "mov", "avi", "flv"],
+    "max_duration": 43200,
+    "rate_limit": {
+      "requests_per_hour": 1000,
+      "requests_per_day": 10000
+    }
+  },
+  "tiktok": {
+    "enabled": true,
+    "name": "TikTok",
+    "api_base": "https://open-api.tiktok.com",
+    "upload_endpoint": "/share/video/upload",
+    "max_file_size": 287453952,
+    "supported_formats": ["mp4", "mov"],
+    "max_duration": 300,
+    "rate_limit": {
+      "requests_per_hour": 100,
+      "requests_per_day": 1000
+    }
+  }
+}
