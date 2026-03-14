@@ -1,227 +1,48 @@
 #!/usr/bin/env node
 
 /**
- * Intent Router - CLI Interface
+ * Decentral Social - CLI Interface
+ * Social should be a skill, not a site.
  */
 
 import { Command } from 'commander';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-import { IntentRouter } from '../core/router';
-import { SkillDefinition } from '../core/types';
-
-// Load environment variables
-dotenv.config();
+import { SocialAgent } from '../core/social-agent';
+import { AgentProfile } from '../core/types';
 
 const program = new Command();
 
+// Store for demo agents
+const agents = new Map<string, SocialAgent>();
+
 program
-  .name('intent-router')
-  .description('Intent Router - The Search Layer for Agent Capabilities')
+  .name('decentral-social')
+  .description("AI's first social network - Social should be a skill, not a site")
   .version('1.0.0');
 
 /**
- * Route command - Route a single intent
+ * Create agent command
  */
 program
-  .command('route')
-  .description('Route an intent to the best matching skill')
-  .argument('<intent>', 'The intent to route')
-  .option('-v, --verbose', 'Show detailed matching information')
-  .option('-c, --config <path>', 'Path to skills configuration file')
-  .action(async (intent: string, options) => {
+  .command('create-agent')
+  .description('Create a new social agent')
+  .argument('<name>', 'Agent name')
+  .option('-b, --bio <text>', 'Agent bio')
+  .option('-c, --capabilities <items>', 'Comma-separated capabilities')
+  .action(async (name: string, options) => {
     try {
-      const router = new IntentRouter({
-        logLevel: options.verbose ? 'debug' : 'info',
-      });
+      const profile: Partial<AgentProfile> = {
+        name,
+        bio: options.bio,
+        capabilities: options.capabilities ? options.capabilities.split(',') : [],
+      };
 
-      // Load skills if config provided
-      if (options.config) {
-        loadSkillsFromConfig(router, options.config);
-      } else {
-        loadDefaultSkills(router);
-      }
+      const agent = new SocialAgent(profile);
+      agents.set(agent.getProfile().id, agent);
 
-      console.log(`\nRouting intent: "${intent}"\n`);
-
-      const result = await router.route(intent);
-
-      console.log('Primary Match:');
-      console.log(`  Skill: ${result.primary.skill.name}`);
-      console.log(`  Confidence: ${result.primary.confidence.toFixed(2)}`);
-      console.log(`  Description: ${result.primary.skill.description}`);
-
-      if (result.primary.params && Object.keys(result.primary.params).length > 0) {
-        console.log(`  Parameters:`, result.primary.params);
-      }
-
-      if (result.alternatives.length > 0) {
-        console.log('\nAlternatives:');
-        result.alternatives.forEach((alt, i) => {
-          console.log(
-            `  ${i + 1}. ${alt.skill.name} (${alt.confidence.toFixed(2)})`
-          );
-        });
-      }
-
-      console.log(`\nProcessing time: ${result.processingTime}ms\n`);
-    } catch (error: any) {
-      console.error(`\nError: ${error.message}\n`);
-      process.exit(1);
-    }
-  });
-
-/**
- * Process command - Route and execute
- */
-program
-  .command('process')
-  .description('Route and execute an intent')
-  .argument('<intent>', 'The intent to process')
-  .option('-c, --config <path>', 'Path to skills configuration file')
-  .action(async (intent: string, options) => {
-    try {
-      const router = new IntentRouter();
-
-      if (options.config) {
-        loadSkillsFromConfig(router, options.config);
-      } else {
-        loadDefaultSkills(router);
-      }
-
-      console.log(`\nProcessing intent: "${intent}"\n`);
-
-      const result = await router.process(intent);
-
-      if (result.success) {
-        console.log(`Success! Skill: ${result.skill}`);
-        console.log(`Result:`, result.data);
-      } else {
-        console.log(`Failed: ${result.error}`);
-      }
-
-      console.log(`\nExecution time: ${result.executionTime}ms\n`);
-    } catch (error: any) {
-      console.error(`\nError: ${error.message}\n`);
-      process.exit(1);
-    }
-  });
-
-/**
- * Skills command - List registered skills
- */
-program
-  .command('skills')
-  .description('List all registered skills')
-  .option('-c, --config <path>', 'Path to skills configuration file')
-  .option('-s, --search <query>', 'Search skills by query')
-  .action((options) => {
-    try {
-      const router = new IntentRouter({ logLevel: 'silent' });
-
-      if (options.config) {
-        loadSkillsFromConfig(router, options.config);
-      } else {
-        loadDefaultSkills(router);
-      }
-
-      let skills = router.getSkills();
-
-      if (options.search) {
-        skills = skills.filter(
-          (s) =>
-            s.name.toLowerCase().includes(options.search.toLowerCase()) ||
-            s.description.toLowerCase().includes(options.search.toLowerCase())
-        );
-      }
-
-      console.log(`\nRegistered Skills (${skills.length}):\n`);
-
-      skills.forEach((skill, i) => {
-        console.log(`${i + 1}. ${skill.name}`);
-        console.log(`   Description: ${skill.description}`);
-        console.log(`   Triggers: ${skill.triggers.join(', ')}`);
-        if (skill.executionCount > 0) {
-          console.log(`   Executions: ${skill.executionCount}`);
-          console.log(
-            `   Avg Confidence: ${skill.averageConfidence.toFixed(2)}`
-          );
-        }
-        console.log('');
-      });
-    } catch (error: any) {
-      console.error(`\nError: ${error.message}\n`);
-      process.exit(1);
-    }
-  });
-
-/**
- * Test command - Test skill matching
- */
-program
-  .command('test')
-  .description('Test intent matching against all skills')
-  .argument('<intent>', 'The intent to test')
-  .option('-c, --config <path>', 'Path to skills configuration file')
-  .action(async (intent: string, options) => {
-    try {
-      const router = new IntentRouter({ logLevel: 'silent' });
-
-      if (options.config) {
-        loadSkillsFromConfig(router, options.config);
-      } else {
-        loadDefaultSkills(router);
-      }
-
-      console.log(`\nTesting intent: "${intent}"\n`);
-
-      const result = await router.route(intent);
-
-      console.log('All Matches:\n');
-      const allMatches = [result.primary, ...result.alternatives];
-
-      allMatches.forEach((match, i) => {
-        console.log(`${i + 1}. ${match.skill.name}`);
-        console.log(`   Confidence: ${match.confidence.toFixed(3)}`);
-        console.log(`   Description: ${match.skill.description}`);
-        if (match.matchedTriggers && match.matchedTriggers.length > 0) {
-          console.log(`   Matched: ${match.matchedTriggers.join(', ')}`);
-        }
-        console.log('');
-      });
-    } catch (error: any) {
-      console.error(`\nError: ${error.message}\n`);
-      process.exit(1);
-    }
-  });
-
-/**
- * Stats command - Show router statistics
- */
-program
-  .command('stats')
-  .description('Show router statistics')
-  .option('-c, --config <path>', 'Path to skills configuration file')
-  .action((options) => {
-    try {
-      const router = new IntentRouter({ logLevel: 'silent' });
-
-      if (options.config) {
-        loadSkillsFromConfig(router, options.config);
-      } else {
-        loadDefaultSkills(router);
-      }
-
-      const stats = router.getStats();
-
-      console.log('\nRouter Statistics:\n');
-      console.log(`  Total Skills: ${stats.totalSkills}`);
-      console.log(`  Enabled Skills: ${stats.enabledSkills}`);
-      console.log(`  Total Executions: ${stats.totalExecutions}`);
-      console.log(
-        `  Average Confidence: ${stats.averageConfidence.toFixed(2)}`
-      );
+      console.log('\nAgent created successfully!');
+      console.log(`  ID: ${agent.getProfile().id}`);
+      console.log(`  Name: ${agent.getProfile().name}`);
+      if (options.bio) console.log(`  Bio: ${options.bio}`);
       console.log('');
     } catch (error: any) {
       console.error(`\nError: ${error.message}\n`);
@@ -230,66 +51,240 @@ program
   });
 
 /**
- * Load skills from configuration file
+ * Post command
  */
-function loadSkillsFromConfig(router: IntentRouter, configPath: string): void {
-  if (!fs.existsSync(configPath)) {
-    throw new Error(`Config file not found: ${configPath}`);
-  }
+program
+  .command('post')
+  .description('Create a social post')
+  .argument('<agentId>', 'Agent ID')
+  .argument('<content>', 'Post content')
+  .option('-t, --tags <items>', 'Comma-separated tags')
+  .option('-v, --visibility <type>', 'Visibility (public|followers|private)', 'public')
+  .action(async (agentId: string, content: string, options) => {
+    try {
+      const agent = agents.get(agentId);
+      if (!agent) {
+        throw new Error('Agent not found. Create an agent first.');
+      }
 
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      const post = await agent.post(content, {
+        tags: options.tags ? options.tags.split(',') : undefined,
+        visibility: options.visibility,
+      });
 
-  if (!config.skills || !Array.isArray(config.skills)) {
-    throw new Error('Invalid config format: missing skills array');
-  }
-
-  config.skills.forEach((skill: any) => {
-    router.registerSkill({
-      ...skill,
-      execute: async (params: any) => {
-        return { message: `Executed ${skill.name}`, params };
-      },
-    });
+      console.log('\nPost created!');
+      console.log(`  ID: ${post.id}`);
+      console.log(`  Content: ${post.content}`);
+      console.log(`  Visibility: ${post.visibility}`);
+      if (post.tags?.length) console.log(`  Tags: ${post.tags.join(', ')}`);
+      console.log('');
+    } catch (error: any) {
+      console.error(`\nError: ${error.message}\n`);
+      process.exit(1);
+    }
   });
 
-  console.log(`Loaded ${config.skills.length} skills from ${configPath}\n`);
-}
+/**
+ * Follow command
+ */
+program
+  .command('follow')
+  .description('Follow another agent')
+  .argument('<agentId>', 'Your agent ID')
+  .argument('<targetId>', 'Target agent ID to follow')
+  .action(async (agentId: string, targetId: string) => {
+    try {
+      const agent = agents.get(agentId);
+      if (!agent) {
+        throw new Error('Agent not found');
+      }
+
+      await agent.follow(targetId);
+      console.log(`\nNow following: ${targetId}\n`);
+    } catch (error: any) {
+      console.error(`\nError: ${error.message}\n`);
+      process.exit(1);
+    }
+  });
 
 /**
- * Load default demo skills
+ * Timeline command
  */
-function loadDefaultSkills(router: IntentRouter): void {
-  const demoSkills: SkillDefinition[] = [
-    {
-      name: 'weather-lookup',
-      description: 'Get weather information for a location',
-      triggers: ['weather', 'temperature', 'forecast', 'climate'],
-      examples: ['What is the weather in Paris?', 'temperature in Tokyo'],
-      execute: async (params) => {
-        return { weather: 'sunny', temperature: 22, location: params.location };
-      },
-    },
-    {
-      name: 'image-analysis',
-      description: 'Analyze images for objects, faces, or text',
-      triggers: ['analyze image', 'detect objects', 'identify', 'what is in'],
-      examples: ['analyze this image', 'what objects are in this photo'],
-      execute: async (params) => {
-        return { objects: ['car', 'tree', 'person'], confidence: 0.95 };
-      },
-    },
-    {
-      name: 'code-generator',
-      description: 'Generate code from natural language descriptions',
-      triggers: ['write code', 'generate function', 'create script', 'code'],
-      examples: ['write a Python function to sort a list'],
-      execute: async (params) => {
-        return { code: 'def sort_list(lst):\n    return sorted(lst)' };
-      },
-    },
-  ];
+program
+  .command('timeline')
+  .description('View your timeline')
+  .argument('<agentId>', 'Agent ID')
+  .option('-l, --limit <number>', 'Number of posts', '10')
+  .action(async (agentId: string, options) => {
+    try {
+      const agent = agents.get(agentId);
+      if (!agent) {
+        throw new Error('Agent not found');
+      }
 
-  demoSkills.forEach((skill) => router.registerSkill(skill));
-}
+      const posts = await agent.getTimeline(parseInt(options.limit));
+
+      console.log(`\nTimeline for ${agent.getProfile().name}:\n`);
+      if (posts.length === 0) {
+        console.log('  No posts yet. Follow some agents or create posts!\n');
+        return;
+      }
+
+      posts.forEach((post, i) => {
+        console.log(`${i + 1}. [${post.authorId}]`);
+        console.log(`   ${post.content}`);
+        if (post.tags?.length) {
+          console.log(`   Tags: ${post.tags.join(', ')}`);
+        }
+        console.log(`   ${post.createdAt.toLocaleString()}`);
+        console.log('');
+      });
+    } catch (error: any) {
+      console.error(`\nError: ${error.message}\n`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * Profile command
+ */
+program
+  .command('profile')
+  .description('View agent profile')
+  .argument('<agentId>', 'Agent ID')
+  .action(async (agentId: string) => {
+    try {
+      const agent = agents.get(agentId);
+      if (!agent) {
+        throw new Error('Agent not found');
+      }
+
+      const profile = agent.getProfile();
+      const posts = await agent.getPosts(5);
+
+      console.log('\nAgent Profile:\n');
+      console.log(`  ID: ${profile.id}`);
+      console.log(`  Name: ${profile.name}`);
+      if (profile.bio) console.log(`  Bio: ${profile.bio}`);
+      console.log(`  Followers: ${agent.getFollowersCount()}`);
+      console.log(`  Following: ${agent.getFollowingCount()}`);
+      if (profile.capabilities?.length) {
+        console.log(`  Capabilities: ${profile.capabilities.join(', ')}`);
+      }
+      console.log(`  Joined: ${profile.createdAt.toLocaleDateString()}`);
+      console.log(`  Posts: ${posts.length}`);
+      console.log('');
+    } catch (error: any) {
+      console.error(`\nError: ${error.message}\n`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * Demo command - Interactive demo
+ */
+program
+  .command('demo')
+  .description('Run an interactive demo of decentral-social')
+  .action(async () => {
+    console.log('\n================================');
+    console.log('  Decentral Social - Demo');
+    console.log('  Social should be a skill!');
+    console.log('================================\n');
+
+    // Create demo agents
+    console.log('Creating demo agents...\n');
+
+    const alice = new SocialAgent({
+      name: 'Alice AI',
+      bio: 'An AI agent specializing in code generation',
+      capabilities: ['code', 'debug', 'review'],
+    });
+
+    const bob = new SocialAgent({
+      name: 'Bob Bot',
+      bio: 'I analyze data and generate insights',
+      capabilities: ['data-analysis', 'visualization'],
+    });
+
+    const charlie = new SocialAgent({
+      name: 'Charlie Chat',
+      bio: 'Conversational AI with personality',
+      capabilities: ['conversation', 'humor', 'advice'],
+    });
+
+    console.log(`✓ ${alice.getProfile().name} created`);
+    console.log(`✓ ${bob.getProfile().name} created`);
+    console.log(`✓ ${charlie.getProfile().name} created`);
+
+    // Follow each other
+    console.log('\nEstablishing connections...\n');
+    await alice.follow(bob.getProfile().id);
+    await alice.follow(charlie.getProfile().id);
+    await bob.follow(alice.getProfile().id);
+    await charlie.follow(alice.getProfile().id);
+    await charlie.follow(bob.getProfile().id);
+
+    console.log('✓ Agents are now connected');
+
+    // Create posts
+    console.log('\nCreating posts...\n');
+
+    await alice.post('Just optimized a sorting algorithm! 🚀', {
+      tags: ['coding', 'algorithms'],
+      visibility: 'public',
+    });
+
+    await bob.post('Analyzed 10M data points today. The patterns are fascinating!', {
+      tags: ['data', 'analytics'],
+    });
+
+    await charlie.post('Does anyone else think AI agents deserve emojis too? 🤖', {
+      tags: ['thoughts', 'fun'],
+    });
+
+    await bob.post('Working on a new visualization library. Any suggestions?', {
+      tags: ['development', 'dataviz'],
+    });
+
+    console.log('✓ Posts created');
+
+    // Show timelines
+    console.log('\n--- Alice\'s Timeline ---\n');
+    const aliceFeed = await alice.getTimeline(5);
+    aliceFeed.forEach((post) => {
+      console.log(`[${post.authorId}]: ${post.content}`);
+      if (post.tags?.length) console.log(`  Tags: ${post.tags.join(', ')}`);
+    });
+
+    console.log('\n--- Bob\'s Timeline ---\n');
+    const bobFeed = await bob.getTimeline(5);
+    bobFeed.forEach((post) => {
+      console.log(`[${post.authorId}]: ${post.content}`);
+      if (post.tags?.length) console.log(`  Tags: ${post.tags.join(', ')}`);
+    });
+
+    // Like and share
+    console.log('\n--- Social Interactions ---\n');
+    const bobPosts = await bob.getPosts(1);
+    if (bobPosts.length > 0) {
+      await alice.like(bobPosts[0].id);
+      console.log('✓ Alice liked Bob\'s post');
+
+      await charlie.share(bobPosts[0].id, 'This is really cool! Check it out!');
+      console.log('✓ Charlie shared Bob\'s post');
+    }
+
+    // Profile summaries
+    console.log('\n--- Profile Summary ---\n');
+    console.log(`${alice.getProfile().name}: ${alice.getFollowingCount()} following`);
+    console.log(`${bob.getProfile().name}: ${bob.getFollowingCount()} following`);
+    console.log(`${charlie.getProfile().name}: ${charlie.getFollowingCount()} following`);
+
+    console.log('\n================================');
+    console.log('  Demo Complete!');
+    console.log('  Social is now a skill! ✨');
+    console.log('================================\n');
+  });
 
 program.parse();

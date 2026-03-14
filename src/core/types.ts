@@ -1,155 +1,206 @@
 /**
- * Intent Router - Core Type Definitions
+ * Decentral Social - Core Type Definitions
+ * Social should be a skill, not a site.
  */
 
 /**
- * User intent representation
+ * Social Agent Profile
  */
-export interface Intent {
-  text: string;
-  context?: Record<string, any>;
-  priority?: 'low' | 'medium' | 'high';
-  timestamp?: Date;
-  sessionId?: string;
+export interface AgentProfile {
+  id: string;
+  name: string;
+  bio?: string;
+  avatar?: string;
+  capabilities: string[];
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  followers?: string[];
+  following?: string[];
 }
 
 /**
- * Skill parameter schema
+ * Social Action Types
  */
-export interface ParameterSchema {
-  [key: string]: {
-    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
-    required?: boolean;
-    default?: any;
-    description?: string;
-    enum?: any[];
+export type SocialActionType =
+  | 'post'
+  | 'reply'
+  | 'like'
+  | 'share'
+  | 'follow'
+  | 'unfollow'
+  | 'mention'
+  | 'dm';
+
+/**
+ * Social Post
+ */
+export interface SocialPost {
+  id: string;
+  authorId: string;
+  content: string;
+  contentType?: 'text' | 'markdown' | 'html';
+  media?: MediaAttachment[];
+  mentions?: string[];
+  tags?: string[];
+  visibility?: 'public' | 'followers' | 'private';
+  replyTo?: string;
+  shareOf?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  likes?: number;
+  shares?: number;
+  replies?: number;
+}
+
+/**
+ * Media Attachment
+ */
+export interface MediaAttachment {
+  type: 'image' | 'video' | 'audio' | 'file';
+  url: string;
+  description?: string;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Social Interaction
+ */
+export interface SocialInteraction {
+  id: string;
+  type: SocialActionType;
+  actorId: string;
+  targetId: string;
+  targetType: 'agent' | 'post';
+  content?: string;
+  metadata?: Record<string, any>;
+  timestamp: Date;
+}
+
+/**
+ * Social Skill Definition
+ */
+export interface SocialSkill {
+  name: string;
+  description: string;
+  actionType: SocialActionType;
+  execute: (params: any, context?: SocialContext) => Promise<any>;
+  validate?: (params: any) => boolean;
+  permissions?: string[];
+}
+
+/**
+ * Social Context
+ */
+export interface SocialContext {
+  agentId: string;
+  conversationId?: string;
+  threadId?: string;
+  community?: string;
+  visibility?: 'public' | 'followers' | 'private';
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Social Feed
+ */
+export interface SocialFeed {
+  type: 'timeline' | 'mentions' | 'notifications' | 'community';
+  posts: SocialPost[];
+  cursor?: string;
+  hasMore: boolean;
+}
+
+/**
+ * Social Network Configuration
+ */
+export interface SocialNetworkConfig {
+  federationEnabled?: boolean;
+  protocol?: 'activitypub' | 'custom';
+  maxPostLength?: number;
+  allowedMediaTypes?: string[];
+  rateLimit?: {
+    posts?: number;
+    follows?: number;
+    period?: number;
+  };
+  storage?: 'memory' | 'file' | 'database';
+  logLevel?: LogLevel;
+}
+
+/**
+ * Federation Protocol
+ */
+export interface FederationProtocol {
+  name: string;
+  send: (activity: any, targetNode: string) => Promise<void>;
+  receive: (activity: any) => Promise<void>;
+  discover: (agentId: string) => Promise<AgentProfile | null>;
+}
+
+/**
+ * Activity (for ActivityPub-like protocols)
+ */
+export interface Activity {
+  '@context'?: string[];
+  type: string;
+  actor: string;
+  object: any;
+  target?: string;
+  published?: Date;
+  to?: string[];
+  cc?: string[];
+}
+
+/**
+ * Social Analytics
+ */
+export interface SocialAnalytics {
+  agentId: string;
+  totalPosts: number;
+  totalFollowers: number;
+  totalFollowing: number;
+  totalLikes: number;
+  totalShares: number;
+  engagement?: number;
+  topPosts?: SocialPost[];
+  period?: {
+    start: Date;
+    end: Date;
   };
 }
 
 /**
- * Skill definition
+ * Social Storage Interface
  */
-export interface SkillDefinition {
-  name: string;
-  description: string;
-  triggers: string[];
-  parameters?: ParameterSchema;
-  examples?: string[];
-  tags?: string[];
-  enabled?: boolean;
-  execute: (params: any, context?: any) => Promise<any>;
-  validate?: (params: any) => boolean;
+export interface ISocialStorage {
+  // Agents
+  saveAgent(agent: AgentProfile): Promise<void>;
+  getAgent(agentId: string): Promise<AgentProfile | null>;
+  searchAgents(query: string): Promise<AgentProfile[]>;
+
+  // Posts
+  savePost(post: SocialPost): Promise<void>;
+  getPost(postId: string): Promise<SocialPost | null>;
+  getPosts(agentId: string, limit?: number): Promise<SocialPost[]>;
+  deletPost(postId: string): Promise<void>;
+
+  // Interactions
+  saveInteraction(interaction: SocialInteraction): Promise<void>;
+  getInteractions(agentId: string, type?: SocialActionType): Promise<SocialInteraction[]>;
+
+  // Feed
+  getFeed(agentId: string, type: 'timeline' | 'mentions', limit?: number): Promise<SocialPost[]>;
 }
 
 /**
- * Registered skill with metadata
+ * Social Skill Registry Interface
  */
-export interface RegisteredSkill extends SkillDefinition {
-  id: string;
-  registeredAt: Date;
-  executionCount: number;
-  averageConfidence: number;
+export interface ISocialSkillRegistry {
+  register(skill: SocialSkill): void;
+  get(actionType: SocialActionType): SocialSkill | undefined;
+  getAll(): SocialSkill[];
+  has(actionType: SocialActionType): boolean;
 }
-
-/**
- * Match result from skill matcher
- */
-export interface MatchResult {
-  skill: RegisteredSkill;
-  confidence: number;
-  params: Record<string, any>;
-  matchedTriggers?: string[];
-  reasoning?: string;
-}
-
-/**
- * Route result with alternatives
- */
-export interface RouteResult {
-  primary: MatchResult;
-  alternatives: MatchResult[];
-  intent: Intent;
-  processingTime: number;
-}
-
-/**
- * Execution result
- */
-export interface ExecutionResult {
-  success: boolean;
-  data?: any;
-  error?: string;
-  skill: string;
-  executionTime: number;
-  timestamp: Date;
-}
-
-/**
- * Router configuration
- */
-export interface RouterConfig {
-  matchingStrategy?: 'keyword' | 'semantic' | 'hybrid';
-  confidenceThreshold?: number;
-  maxAlternatives?: number;
-  enableContextTracking?: boolean;
-  enableAnalytics?: boolean;
-  logLevel?: LogLevel;
-  fallbackSkill?: string;
-}
-
-/**
- * Fallback configuration
- */
-export interface FallbackConfig {
-  threshold: number;
-  handler: (intent: Intent) => Promise<any>;
-}
-
-/**
- * Matching strategy interface
- */
-export interface IMatcher {
-  match(intent: Intent, skills: RegisteredSkill[]): Promise<MatchResult[]>;
-  getName(): string;
-}
-
-/**
- * Context tracking
- */
-export interface ConversationContext {
-  sessionId: string;
-  history: Intent[];
-  variables: Record<string, any>;
-  lastSkill?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * Analytics event
- */
-export interface AnalyticsEvent {
-  type: 'route' | 'execute' | 'error' | 'fallback';
-  timestamp: Date;
-  intent?: string;
-  skill?: string;
-  confidence?: number;
-  executionTime?: number;
-  error?: string;
-}
-
-/**
- * Hook types
- */
-export type HookType =
-  | 'before-route'
-  | 'after-route'
-  | 'before-execute'
-  | 'after-execute'
-  | 'on-error'
-  | 'on-fallback';
-
-export type HookHandler = (data: any) => void | Promise<void>;
 
 /**
  * Log levels
@@ -167,13 +218,12 @@ export interface ILogger {
 }
 
 /**
- * Skill registry interface
+ * Social Skill Result
  */
-export interface ISkillRegistry {
-  register(skill: SkillDefinition): RegisteredSkill;
-  unregister(skillId: string): boolean;
-  get(skillId: string): RegisteredSkill | undefined;
-  getAll(): RegisteredSkill[];
-  getByName(name: string): RegisteredSkill | undefined;
-  search(query: string): RegisteredSkill[];
+export interface SocialSkillResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+  actionType: SocialActionType;
+  timestamp: Date;
 }

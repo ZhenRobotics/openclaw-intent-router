@@ -1,5 +1,5 @@
 /**
- * Logger Implementation
+ * Decentral Social - Logger Implementation
  */
 
 import { ILogger, LogLevel } from '../core/types';

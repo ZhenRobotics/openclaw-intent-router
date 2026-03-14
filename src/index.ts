@@ -1,33 +1,35 @@
 /**
- * Intent Router - Main Entry Point
+ * Decentral Social - Main Entry Point
+ * Social should be a skill, not a site.
  */
 
-export { IntentRouter } from './core/router';
-export { IntentAnalyzer } from './core/intent-analyzer';
-export { SkillRegistry } from './skills/registry';
-export { BaseSkill } from './skills/base';
+// Core
+export { SocialAgent } from './core/social-agent';
 
-// Matchers
-export { KeywordMatcher } from './matchers/keyword';
-export { SemanticMatcher } from './matchers/semantic';
-export { HybridMatcher } from './matchers/hybrid';
+// Skills
+export { SocialSkillRegistry } from './skills/registry';
+
+// Storage
+export { MemoryStorage } from './storage/memory';
 
 // Types
 export type {
-  Intent,
-  SkillDefinition,
-  RegisteredSkill,
-  MatchResult,
-  RouteResult,
-  ExecutionResult,
-  RouterConfig,
-  FallbackConfig,
-  ParameterSchema,
-  IMatcher,
+  AgentProfile,
+  SocialActionType,
+  SocialPost,
+  SocialInteraction,
+  SocialSkill,
+  SocialContext,
+  SocialFeed,
+  SocialNetworkConfig,
+  SocialAnalytics,
+  SocialSkillResult,
+  MediaAttachment,
+  Activity,
+  FederationProtocol,
+  ISocialStorage,
+  ISocialSkillRegistry,
   ILogger,
-  ISkillRegistry,
-  HookType,
-  HookHandler,
   LogLevel,
 } from './core/types';
 
